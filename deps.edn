@@ -1,0 +1,16 @@
+{
+ :mvn/repos {"psiegman" {:url "https://raw.githubusercontent.com/psiegman/mvn-repo/master/releases/"}}
+
+ :paths     ["src" "experimental" "resources"]
+
+ :aliases
+ {
+  :slides {:main-opts ["-m" "pyjama.slides.core"]}
+  }
+
+ :deps
+ {hellonico/pyjama    {:local/root "../pyjama"}
+  hellonico/pyjama-io {:local/root "../pyjama-io"}
+
+  }
+ }
