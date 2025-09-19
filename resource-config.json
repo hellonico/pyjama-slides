@@ -1,0 +1,7 @@
+{
+  "resources": [
+    { "pattern": "schemaorg_apache_xmlbeans/.*" },
+    { "pattern": "org/apache/xmlbeans/metadata/.*" },
+    { "pattern": "META-INF/services/.*" }
+  ]
+}

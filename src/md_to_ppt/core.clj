@@ -7,7 +7,9 @@
   (:import (java.awt Rectangle)
            (java.io File FileOutputStream)
            (org.apache.poi.sl.usermodel PictureData$PictureType)
-           (org.apache.poi.xslf.usermodel XMLSlideShow XSLFTextParagraph)))
+           (org.apache.poi.xslf.usermodel XMLSlideShow XSLFTextParagraph))
+  (:gen-class)
+  )
 
 (defn format-run [^XSLFTextParagraph para text]
   (let [tokens (-> text
@@ -130,7 +132,7 @@
             (md->ppt! paths out))
           (println "⚠️  No markdown files matched those patterns.")))
       (println "Usage:"
-               "\n  clj -M -m md-to-ppt.core [--out deck.pptx] <path/glob> [<path/glob> ...]"
+               "\n  moonlight [--out deck.pptx] <path/glob> [<path/glob> ...]"
                "\nExamples:"
                "\n  clj -M -m md-to-ppt.core slides/**/*.md"
                "\n  clj -M -m md-to-ppt.core --out talk.pptx README.md notes/*.markdown"))))

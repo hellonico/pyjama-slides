@@ -3,3 +3,6 @@
 *.txt
 *.pptx
 *.iml
+/classes
+/moonlight
+/presentation.pptx.json
