@@ -1,8 +1,7 @@
 (ns ppt.core
-  (:import (org.apache.poi.xslf.usermodel XMLSlideShow XSLFTable XSLFTableRow XSLFTableCell XSLFTextParagraph)
-           (org.apache.poi.sl.usermodel VerticalAlignment TableCell$BorderEdge TextParagraph$TextAlign Insets2D)
-           (java.awt Rectangle Color)))
-
+  (:import (java.awt Color Rectangle)
+           (org.apache.poi.sl.usermodel Insets2D TableCell$BorderEdge TextParagraph$TextAlign VerticalAlignment)
+           (org.apache.poi.xslf.usermodel XSLFTable XSLFTableCell XSLFTableRow XSLFTextParagraph)))
 
 (defn add-table-basic!
   "Render a 2D vector/seq `table` onto `slide` at rect [x y w h].
@@ -62,44 +61,44 @@
               (.setBorderWidth cell edge 1.0)))))
 
       t)))
+;
+;(defn add-tables-paginated!
+;  "Lay tables top→bottom; when the next table won't fit, start a new slide."
+;  [^XMLSlideShow ppt tables
+;   {:keys [x y0 w h gutter top-margin bottom-margin] :as opts}]
+;  (let [page (.. ppt getPageSize)
+;        page-w (.getWidth page)
+;        page-h (.getHeight page)
+;        x      (or x 60)
+;        y0     (or y0 120)
+;        w      (or w (- page-w 120))        ; leave some side padding by default
+;        h      (or h 160)
+;        gutter (or gutter 20)
+;        top-margin    (or top-margin y0)
+;        bottom-margin (or bottom-margin 40)
+;        y-max (- page-h bottom-margin)]
+;    (loop [remaining tables
+;           slide (.createSlide ppt)
+;           y y0]
+;      (when (seq remaining)
+;        (let [tbl (first remaining)
+;              next-y (+ y h)]
+;          (if (> next-y y-max)
+;            ;; new slide
+;            (recur remaining (.createSlide ppt) top-margin)
+;            ;; place table here
+;            (do
+;              (add-table-basic! slide tbl x y w h opts)
+;              (recur (rest remaining) slide (+ y h gutter)))))))))
 
-(defn add-tables-paginated!
-  "Lay tables top→bottom; when the next table won't fit, start a new slide."
-  [^XMLSlideShow ppt tables
-   {:keys [x y0 w h gutter top-margin bottom-margin] :as opts}]
-  (let [page (.. ppt getPageSize)
-        page-w (.getWidth page)
-        page-h (.getHeight page)
-        x      (or x 60)
-        y0     (or y0 120)
-        w      (or w (- page-w 120))        ; leave some side padding by default
-        h      (or h 160)
-        gutter (or gutter 20)
-        top-margin    (or top-margin y0)
-        bottom-margin (or bottom-margin 40)
-        y-max (- page-h bottom-margin)]
-    (loop [remaining tables
-           slide (.createSlide ppt)
-           y y0]
-      (when (seq remaining)
-        (let [tbl (first remaining)
-              next-y (+ y h)]
-          (if (> next-y y-max)
-            ;; new slide
-            (recur remaining (.createSlide ppt) top-margin)
-            ;; place table here
-            (do
-              (add-table-basic! slide tbl x y w h opts)
-              (recur (rest remaining) slide (+ y h gutter)))))))))
+;(defn add-tables-one-per-slide!
+;  "Each table gets its own slide at a fixed rect."
+;  [^XMLSlideShow ppt tables & [opts]]
+;  (doseq [tbl tables]
+;    (let [slide (.createSlide ppt)]
+;      (add-table-basic! slide tbl 60 120 600 180 opts))))
 
-(defn add-tables-one-per-slide!
-  "Each table gets its own slide at a fixed rect."
-  [^XMLSlideShow ppt tables & [opts]]
-  (doseq [tbl tables]
-    (let [slide (.createSlide ppt)]
-      (add-table-basic! slide tbl 60 120 600 180 opts))))
-
-(defn ^:private empty-table? [t]
+(defn- ^:private empty-table? [t]
   (or (nil? t) (not (seq t)) (not (seq (first t)))))
 
 ;
@@ -108,13 +107,13 @@
 ;; matches  --- ,  :--- ,  ---: ,  :---:  (with optional spaces/pipes)
 (def ^:private md-sep-cell-re #"^\s*\|?\s*:?-{3,}:?\s*\|?\s*$")
 
-(defn ^:private md-separator-row?
+(defn- ^:private md-separator-row?
   "True if every cell in the row is a Markdown header separator."
   [row]
   (and (seq row)
        (every? #(re-matches md-sep-cell-re (str %)) row)))
 
-(defn strip-second-md-separator-row
+(defn- strip-second-md-separator-row
   "If the 2nd row is a Markdown header-separator (--- / :---:), drop it."
   [table]
   (let [data (mapv vec table)]
