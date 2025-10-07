@@ -6,19 +6,27 @@
  :aliases
  {
   :slides {:main-opts ["-m" "pyjama.slides.core"]}
+  :mdp    {:main-opts ["-m" "md-to-ppt.core"]}
 
-  :native-cli-doc
+  :mdp-cli
   {:main-opts ["-m" "clj.native-image" "md-to-ppt.core"
-               "--initialize-at-build-time"
+
+               "--initialize-at-run-time=org.apache.poi,org.apache.commons,org.apache.xmlbeans.impl.values"
                "--initialize-at-run-time=org.apache.http.impl.auth.NTLMEngineImpl"
-               "--initialize-at-run-time=sun.java2d.Disposer"
+               "--initialize-at-run-time=com.microsoft.schemas.vml,com.microsoft.schemas.office.drawing.x2008.diagram.DrawingDocument"
+               "--initialize-at-run-time=com.microsoft.schemas.office.office"
+               "--initialize-at-run-time=sun.java2d.Disposer,org.apache.poi,org.apache.xmlbeans,org.openxmlformats,org.apache.poi"
                "--enable-url-protocols=https"
                "-march=native"
-               "--trace-object-instantiation=java.security.SecureRandom"
-               "--trace-object-instantiation=java.lang.Thread"
+               "-H:+UnlockExperimentalVMOptions"
+               ;"--trace-object-instantiation=java.security.SecureRandom"
+               ;"--trace-object-instantiation=java.lang.Thread"
+               ;"--trace-object-instantiation=org.apache.xmlbeans.impl.schema.DocumentFactory"
                "--enable-url-protocols=http"
+               "-H:+AddAllCharsets"
                "-H:ResourceConfigurationFiles=resource-config.json"
-               "--initialize-at-build-time=org.apache.xmlbeans.impl.schema.DocumentFactory"
+               "-H:ReflectionConfigurationFiles=reflect-config.json"
+               ;"--initialize-at-build-time=org.apache.xmlbeans.impl.schema.BuiltinSchemaTypeSystem"
                ;; optional native image name override
                "-o moonlight"
                ]
@@ -30,8 +38,8 @@
   }
 
  :deps
- {hellonico/pyjama    {:local/root "../pyjama"}
-  hellonico/pyjama-io {:local/root "../pyjama-io"}
-
+ {hellonico/pyjama                    {:local/root "../pyjama"}
+  hellonico/pyjama-io                 {:local/root "../pyjama-io"}
+  org.apache.logging.log4j/log4j-core {:mvn/version "2.25.1"}
   }
  }

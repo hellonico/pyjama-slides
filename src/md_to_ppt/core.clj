@@ -6,6 +6,7 @@
             [pyjama.helpers.file :as hf])
   (:import (java.awt Rectangle)
            (java.io File FileOutputStream)
+           (java.util List)
            (org.apache.poi.sl.usermodel PictureData$PictureType)
            (org.apache.poi.xslf.usermodel XMLSlideShow XSLFTextParagraph))
   (:gen-class)
@@ -96,15 +97,6 @@
        (filter markdown-file?)
        (sort-by #(.getCanonicalPath ^File %))))
 
-(defn ^:private parse-cli-args [args]
-  ;; supports: clj -M -m md-to-ppt.core [--out deck.pptx] <glob>...
-  (let [out-idx (.indexOf ^java.util.List (vec args) "--out")]
-    (if (neg? out-idx)
-      {:out "combined.pptx" :patterns (seq args)}
-      (let [out (get args (inc out-idx))
-            pats (concat (take out-idx args) (drop (+ out-idx 2) args))]
-        {:out      (or out "combined.pptx")
-         :patterns (seq pats)}))))
 
 (defn md->ppt!
   "Build one deck from an ordered seq of markdown file paths."
@@ -120,6 +112,17 @@
       (.write ppt out))
     (println "✅ PowerPoint created at:" out-path)
     out-path))
+
+
+(defn ^:private parse-cli-args [args]
+  (loop [xs args, out "combined.pptx", pats []]
+    (if (seq xs)
+      (let [[a & rst] xs]
+        (if (= a "--out")
+          (recur (next rst) (or (first rst) out) pats)
+          (recur rst out (conj pats a))))
+      {:out out :patterns (seq pats)})))
+
 
 (defn -main [& args]
   (let [{:keys [out patterns]} (parse-cli-args args)]

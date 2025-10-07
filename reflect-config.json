@@ -1,0 +1,43 @@
+[
+  { "name": "javax.xml.stream.XMLInputFactory",  "allPublicMethods": true },
+  { "name": "javax.xml.stream.XMLOutputFactory", "allPublicMethods": true },
+
+  { "name": "com.sun.xml.internal.stream.XMLInputFactoryImpl",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+  { "name": "com.sun.xml.internal.stream.XMLOutputFactoryImpl",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+
+  { "name": "com.ctc.wstx.stax.WstxInputFactory",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+  { "name": "com.ctc.wstx.stax.WstxOutputFactory",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+
+  { "name": "javax.xml.parsers.SAXParserFactory",        "allPublicMethods": true },
+  { "name": "javax.xml.parsers.DocumentBuilderFactory",  "allPublicMethods": true },
+  { "name": "javax.xml.transform.TransformerFactory",    "allPublicMethods": true },
+  { "name": "javax.xml.xpath.XPathFactory",              "allPublicMethods": true },
+
+  { "name": "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+  { "name": "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+  { "name": "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+  { "name": "com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl",
+    "allPublicMethods": true, "allDeclaredConstructors": true },
+
+  { "name": "org.apache.poi.ooxml.POIXMLDocumentPart",
+    "allDeclaredConstructors": true, "allPublicMethods": true },
+  { "name": "org.apache.poi.ooxml.POIXMLFactory",
+    "allDeclaredConstructors": true, "allPublicMethods": true },
+  { "name": "org.apache.poi.openxml4j.opc.PackagePart",
+    "allDeclaredConstructors": true, "allPublicMethods": true },
+
+  { "name": "org.apache.xmlbeans.XmlOptions", "allPublicMethods": true },
+  { "name": "org.apache.xmlbeans.XmlObject",  "allPublicMethods": true },
+
+  { "name": "clojure.core.server__init", "allDeclaredConstructors": true, "allDeclaredMethods": true, "allDeclaredFields": true },
+  { "name": "clojure.core.server",       "allPublicMethods": true },
+  { "name": "clojure.lang.RT",           "allPublicMethods": true, "allDeclaredConstructors": true },
+  { "name": "clojure.lang.Var",          "allPublicMethods": true, "allDeclaredConstructors": true }
+]

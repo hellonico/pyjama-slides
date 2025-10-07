@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [pyjama.core])
   (:import (java.io FileInputStream FileOutputStream)
-           (org.apache.poi.xslf.usermodel XMLSlideShow XSLFSlide XSLFTable XSLFTableCell XSLFTextShape)))
+           (org.apache.poi.xslf.usermodel XMLSlideShow XSLFSlide XSLFTable XSLFTableCell XSLFTextRun XSLFTextShape)))
 
 
 (defn translate [config text]
@@ -58,19 +58,25 @@
       ;; Clear the existing paragraph text
       (try
         ;; Use reflection to call the protected .clearButKeepProperties method
-        (let [clear-method (.getDeclaredMethod (.getClass tp) "clearButKeepProperties" nil)]
-          (.setAccessible clear-method true)
-          (.invoke clear-method tp nil))
+        (try
+          (let [clear-method (.getDeclaredMethod (.getClass tp) "clearButKeepProperties" nil)]
+            (.setAccessible clear-method true)
+            (.invoke clear-method tp nil))
+          (catch Exception _)
+          )
 
-        (let [new-run (.addNewTextRun tp)]
+        (let [^XSLFTextRun new-run (.addNewTextRun tp)]
           (.setText new-run translated-text)
           (when-let [font (:font format)] (.setFontFamily new-run font))
-          (when-let [size (:size format)] (.setFontSize new-run size))
-          ;(when-let [color (:color format)] (.setFillColor new-run color))
-          (when (:bold format) (.setBold new-run true))
+          (when-let [size (:size format)] (.setFontSize new-run (double size)))
+          (when (:bold format)   (.setBold new-run true))
           (when (:italic format) (.setItalic new-run true)))
 
-        (catch Exception e (.setText tp translated-text))))))
+        (catch Exception e
+          (do
+            (.printStackTrace e)
+            (.setText tp translated-text))
+          )))))
 
 
 (defn translate-one-shape [options ^XSLFTextShape shape]
