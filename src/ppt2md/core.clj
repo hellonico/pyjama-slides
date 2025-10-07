@@ -4,7 +4,7 @@
     ;; PPTX (OOXML)
     (org.apache.poi.xslf.usermodel XMLSlideShow XSLFSlide XSLFShape XSLFTextShape XSLFTextParagraph XSLFTable XSLFTableCell)
     ;; PPT (binary)
-    (org.apache.poi.hslf.usermodel HSLFSlideShow HSLFSlide HSLFShape HSLFTextShape)
+    (org.apache.poi.hslf.usermodel HSLFTable HSLFTableCell HSLFSlideShow HSLFSlide HSLFShape HSLFTextShape)
     ;; Common
     (java.io File FileInputStream FileOutputStream BufferedWriter OutputStreamWriter)
     (java.nio.charset StandardCharsets)
@@ -35,6 +35,54 @@
   (let [lvl (max 1 (min 6 level))]
     (str (apply str (repeat lvl "#")) " " (md-escape (safe-trim text)))))
 
+(defn- md-escape-table [s]
+  ;; Extra escaping for table cells: escape `|` and flatten newlines.
+  (-> (md-escape (safe-trim s))
+      (clojure.string/replace #"\|" "\\\\|")
+      (clojure.string/replace #"\n" "<br>")))
+
+(defn- xslf-table->markdown [^XSLFTable tbl]
+  (let [rows (.getRows tbl)
+        rows-data (->> rows
+                       (map (fn [row]
+                              (->> (.getCells row)
+                                   (map (fn [^XSLFTableCell c]
+                                          (md-escape-table (.getText c))))
+                                   (vec))))
+                       (vec))
+        maxcols (or (apply max 0 (map count rows-data)) 0)]
+    (when (pos? maxcols)
+      (let [pad (fn [r] (into [] (concat r (repeat (- maxcols (count r)) ""))))
+            rows* (map pad rows-data)
+            header (first rows*)
+            body   (rest rows*)
+            sep    (repeat maxcols "---")
+            line   (fn [r] (str "| " (clojure.string/join " | " r) " |"))
+            lines  (concat [(line header) (line sep)] (map line body))]
+        (str "\n" (clojure.string/join "\n" lines) "\n")))))
+
+(defn- hslf-table->markdown [^HSLFTable tbl]
+  (let [rows (.getRows tbl)
+        rows-data (->> rows
+                       (map (fn [row]
+                              (->> (.getCells row)
+                                   (map (fn [^HSLFTableCell c]
+                                          (md-escape-table (.getText c))))
+                                   (vec))))
+                       (vec))
+        maxcols (or (apply max 0 (map count rows-data)) 0)]
+    (when (pos? maxcols)
+      (let [pad (fn [r] (into [] (concat r (repeat (- maxcols (count r)) ""))))
+            rows* (map pad rows-data)
+            header (first rows*)
+            body   (rest rows*)
+            sep    (repeat maxcols "---")
+            line   (fn [r] (str "| " (clojure.string/join " | " r) " |"))
+            lines  (concat [(line header) (line sep)] (map line body))]
+        (str "\n" (clojure.string/join "\n" lines) "\n")))))
+
+
+
 ;; ---------- PPTX extraction ----------
 (defn- pptx-paragraphs->md [^org.apache.poi.xslf.usermodel.XSLFTextParagraph p]
   (let [lvl (or (some-> p .getIndentLevel int) 0)
@@ -53,16 +101,10 @@
           paras (.getTextParagraphs ts)]
       (->> paras (keep pptx-paragraphs->md)))
 
-    (instance? XSLFTable shape)
-    ;; Render table cells as list items "Header: Value" per row
-    (let [tbl ^XSLFTable shape]
-      (for [row (.getRows tbl)
-            :let [cells (.getCells row)]
-            :when (seq cells)]
-        (->> cells
-             (map (fn [^XSLFTableCell c] (md-escape (safe-trim (.getText c)))))
-             (clojure.string/join " | ")
-             (bullet-line 0))))
+
+    (instance? org.apache.poi.xslf.usermodel.XSLFTable shape)
+    (when-let [tbl-md (xslf-table->markdown ^org.apache.poi.xslf.usermodel.XSLFTable shape)]
+      [tbl-md])  ;; return a single multi-line block
 
     :else
     ;; Skip pictures, charts, graphs, etc.
@@ -98,9 +140,19 @@
                     (bullet-line (max 0 level) text)
                     (str (apply str (repeat (max 0 level) "  ")) (md-escape text)))))))))
 
-(defn- hslf-shape->lines [^HSLFShape shape]
-  (when (instance? HSLFTextShape shape)
-    (->> (hslf-textshape-paragraphs ^HSLFTextShape shape) (remove nil?))))
+(defn- hslf-shape->lines [^org.apache.poi.hslf.usermodel.HSLFShape shape]
+  (cond
+    (instance? org.apache.poi.hslf.usermodel.HSLFTextShape shape)
+    (->> (hslf-textshape-paragraphs ^org.apache.poi.hslf.usermodel.HSLFTextShape shape)
+         (remove nil?))
+
+    (instance? org.apache.poi.hslf.usermodel.HSLFTable shape)
+    (when-let [tbl-md (hslf-table->markdown ^org.apache.poi.hslf.usermodel.HSLFTable shape)]
+      [tbl-md])
+
+    :else
+    nil))
+
 
 (defn- read-ppt [^File f]
   (with-open [fis (FileInputStream. f)

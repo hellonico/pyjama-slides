@@ -7,6 +7,7 @@
  {
   :slides {:main-opts ["-m" "pyjama.slides.core"]}
   :mdp    {:main-opts ["-m" "md-to-ppt.core"]}
+  :ppt2md {:main-opts ["-m" "ppt2md.core"]}
 
   :mdp-cli
   {:main-opts ["-m" "clj.native-image" "md-to-ppt.core"
