@@ -36,10 +36,11 @@
     (str (apply str (repeat lvl "#")) " " (md-escape (safe-trim text)))))
 
 (defn- md-escape-table [s]
-  ;; Extra escaping for table cells: escape `|` and flatten newlines.
-  (-> (md-escape (safe-trim s))
-      (clojure.string/replace #"\|" "\\\\|")
-      (clojure.string/replace #"\n" "<br>")))
+  ;; Preserve inline Markdown in cells (**, _, +, -), escape only what's needed for tables.
+  (-> (safe-trim s)
+      (clojure.string/replace #"\|" "\\\\|")  ; only escape the column separator
+      (clojure.string/replace #"\n" "<br>")   ; keep multi-line cells readable
+      (clojure.string/replace #"\t" "    "))) ; normalize tabs
 
 (defn- xslf-table->markdown [^XSLFTable tbl]
   (let [rows (.getRows tbl)
